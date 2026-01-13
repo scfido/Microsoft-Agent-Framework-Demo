@@ -1,5 +1,6 @@
 ﻿using MafDemo.AISlogan;
 using MafDemo.Judge;
+using MafDemo.Checkpoints;
 using Microsoft.Extensions.Configuration;
 
 namespace MafDemo;
@@ -18,6 +19,7 @@ internal class Program
 
         //await TestWorkflow.RunAsync();
         //await JudgeWorkflow.RunAsync();
-        await SloganWorkflow.RunAsync(configuration);
+        //await SloganWorkflow.RunAsync(configuration);
+        await CheckpointWorkflow.RunAsync();
     }
 }

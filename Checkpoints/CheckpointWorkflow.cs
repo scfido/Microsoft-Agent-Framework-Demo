@@ -1,21 +1,21 @@
-﻿using Microsoft.Agents.AI.Workflows;
+﻿using MafDemo.Test01;
+using Microsoft.Agents.AI.Workflows;
 
-namespace MafDemo.Test01;
+namespace MafDemo.Checkpoints;
 
-internal class Test01Workflow
+internal class CheckpointWorkflow
 {
 
     private static Workflow Build()
     {
-        var uppercase = new UppercaseExecutor();
-        var reverse = new ReverseTextExecutor();
+        var step1 = new StepExecutor(1);
+        var step2 = new StepExecutor(2);
+        var step3 = new StepExecutor(3);
 
-        var inputPort = RequestPort.Create<string, string>("input-port");
-
-        var workflow = new WorkflowBuilder(uppercase)
-            .AddEdge(uppercase, inputPort)
-            .AddEdge(inputPort, reverse)
-            .WithOutputFrom(reverse)
+        var workflow = new WorkflowBuilder(step1)
+            .AddEdge(step1, step2)
+            .AddEdge(step2, step3)
+            .WithOutputFrom(step3)
             .Build();
 
         return workflow;
@@ -23,9 +23,14 @@ internal class Test01Workflow
 
     public static async Task RunAsync()
     {
+        // Create a checkpoint manager to manage checkpoints
+        var checkpointManager = CheckpointManager.Default;
+        // List to store checkpoint info for later use
+        var checkpoints = new List<CheckpointInfo>();
+
         var workflow = Build();
-        await using StreamingRun run = await InProcessExecution.StreamAsync(workflow, "Hello, World!");
-        await foreach (WorkflowEvent evt in run.WatchStreamAsync())
+        await using Checkpointed<StreamingRun> run = await InProcessExecution.StreamAsync(workflow, "Checkpoint Workflow", checkpointManager);
+        await foreach (WorkflowEvent evt in run.Run.WatchStreamAsync())
         {
             switch (evt)
             {
@@ -42,7 +47,7 @@ internal class Test01Workflow
                 // 如果Build中没有WithOutputFrom，则不会触发这个事件
                 case WorkflowOutputEvent output:
                     Console.WriteLine($"Workflow output: {output.Data}");
-                    return;
+                    break;
 
                 case WorkflowErrorEvent error:
                     Console.WriteLine($"Workflow error: {error.Exception}");
@@ -54,14 +59,12 @@ internal class Test01Workflow
 
                 case SuperStepCompletedEvent superStepCompleted:
                     Console.WriteLine($"Super step completed: {superStepCompleted.StepNumber}: {superStepCompleted.Data}");
-                    break;
-
-                // 将工作流中断，等待用户处理的请求事件
-                case RequestInfoEvent requestInfo:
-                    Console.WriteLine("请输入内容：");
-                    string? input = Console.ReadLine() ?? "用户没有输入内容";
-                    ExternalResponse response = requestInfo.Request.CreateResponse<string>(input);
-                    await run.SendResponseAsync(response).ConfigureAwait(false);
+                    // Access the checkpoint and store it
+                    CheckpointInfo? checkpoint = superStepCompleted.CompletionInfo!.Checkpoint;
+                    if (checkpoint != null)
+                    {
+                        checkpoints.Add(checkpoint);
+                    }
                     break;
 
                 // 从Executor中发出的自定义事件
@@ -70,11 +73,26 @@ internal class Test01Workflow
                     break;
 
                 default:
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.ForegroundColor = ConsoleColor.Red; 
                     Console.Write("Unknown event: ");
                     Console.ResetColor();
                     Console.WriteLine(evt.Data?.ToString());
                     break;
+            }
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("-------");
+        Console.WriteLine();
+
+        await run.RestoreCheckpointAsync(checkpoints[1], CancellationToken.None);
+        await foreach (WorkflowEvent evt in run.Run.WatchStreamAsync())
+        {
+            switch (evt)
+            {
+                case WorkflowOutputEvent output:
+                    Console.WriteLine($"Workflow output: {output.Data}");
+                    return;
             }
         }
     }
