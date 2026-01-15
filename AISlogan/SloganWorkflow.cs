@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace MafDemo.AISlogan;
 
+/// <summary>
+/// 两个执行器组成的工作流：一个用于生成广告语，另一个用于提供反馈。
+/// </summary>
 internal class SloganWorkflow
 {
     private static IChatClient? chatClient;

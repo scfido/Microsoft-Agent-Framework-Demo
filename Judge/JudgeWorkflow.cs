@@ -2,6 +2,10 @@
 
 namespace MafDemo.Judge;
 
+/// <summary>
+/// 通过人机交互进行数字猜测游戏的工作流。
+/// 演示了如何使用请求端口与外部世界进行交互。
+/// </summary>
 internal class JudgeWorkflow
 {
     /// <summary>

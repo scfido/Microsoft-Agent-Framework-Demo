@@ -1,6 +1,6 @@
 using Microsoft.Agents.AI.Workflows;
 
-namespace MafDemo.Test01;
+namespace MafDemo.CheckpointDemo;
 
 internal sealed class StepExecutor : Executor<string, string>
 {

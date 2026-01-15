@@ -1,7 +1,7 @@
 ﻿using MafDemo.Test01;
 using Microsoft.Agents.AI.Workflows;
 
-namespace MafDemo.Checkpoints;
+namespace MafDemo.CheckpointDemo;
 
 internal class CheckpointWorkflow
 {
