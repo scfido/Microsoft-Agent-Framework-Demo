@@ -12,7 +12,7 @@ var configuration = new ConfigurationBuilder()
     .AddJsonFile($"appsettings.Development.json", optional: true, reloadOnChange: true)
     .Build();
 
-var aiEndpoint = configuration["OpenAI:Endpoint"]
+var aiEndpoint = configuration["OpenAI:EndPoint"]
     ?? throw new InvalidOperationException("配置项 'OpenAI:Endpoint' 未找到");
 var apiKey = configuration["OpenAI:ApiKey"]
     ?? throw new InvalidOperationException("配置项 'OpenAI:ApiKey' 未找到");
