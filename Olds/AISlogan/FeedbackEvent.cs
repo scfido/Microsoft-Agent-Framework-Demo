@@ -2,7 +2,7 @@ using Microsoft.Agents.AI.Workflows;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
-namespace MafDemo.AISlogan;
+namespace MafDemo.Olds.AISlogan;
 
 /// <summary>
 /// A custom event to indicate that feedback has been provided.

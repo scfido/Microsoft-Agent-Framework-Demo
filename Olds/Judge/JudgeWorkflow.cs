@@ -1,6 +1,6 @@
 ﻿using Microsoft.Agents.AI.Workflows;
 
-namespace MafDemo.Judge;
+namespace MafDemo.Olds.Judge;
 
 /// <summary>
 /// 通过人机交互进行数字猜测游戏的工作流。

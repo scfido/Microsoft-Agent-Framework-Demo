@@ -1,10 +1,10 @@
 ﻿using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
-using System.ClientModel;
 using Microsoft.Extensions.Logging;
+using System.ClientModel;
 
-namespace MafDemo.AISlogan;
+namespace MafDemo.Olds.AISlogan;
 
 /// <summary>
 /// 两个执行器组成的工作流：一个用于生成广告语，另一个用于提供反馈。
@@ -25,7 +25,7 @@ internal class SloganWorkflow
             ?? throw new InvalidOperationException("配置项 'OpenAI:Endpoint' 未找到");
         var apiKey = configuration["OpenAI:ApiKey"]
             ?? throw new InvalidOperationException("配置项 'OpenAI:ApiKey' 未找到");
-            
+
         chatClient = new LoggingChatClient(
                 new OpenAI.Chat.ChatClient("GLM-4.5-Flash",
                     new ApiKeyCredential(apiKey),

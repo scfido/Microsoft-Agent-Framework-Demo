@@ -1,6 +1,6 @@
 ﻿using Microsoft.Agents.AI.Workflows;
 
-namespace MafDemo.AISlogan;
+namespace MafDemo.Olds.AISlogan;
 
 /// <summary>
 /// 自定义事件，用于监控工作流进度，并重写 ToString 便于控制台打印

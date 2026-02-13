@@ -1,7 +1,7 @@
-﻿using MafDemo.Test01;
+﻿using MafDemo.Olds.Test01;
 using Microsoft.Agents.AI.Workflows;
 
-namespace MafDemo.CheckpointDemo;
+namespace MafDemo.Olds.CheckpointDemo;
 
 internal class CheckpointWorkflow
 {
@@ -73,7 +73,7 @@ internal class CheckpointWorkflow
                     break;
 
                 default:
-                    Console.ForegroundColor = ConsoleColor.Red; 
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write("Unknown event: ");
                     Console.ResetColor();
                     Console.WriteLine(evt.Data?.ToString());

@@ -3,7 +3,7 @@ using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 using System.Text.Json;
 
-namespace MafDemo.AISlogan;
+namespace MafDemo.Olds.AISlogan;
 
 /// <summary>
 /// 反馈评估执行器，负责评估广告语并决定流程走向
@@ -11,7 +11,7 @@ namespace MafDemo.AISlogan;
 internal sealed class FeedbackExecutor : Executor<SloganResult>
 {
     private readonly AIAgent _agent;
-    private readonly AgentThread thread;
+    private readonly AgentSession session;
 
     public int MinimumRating { get; init; } = 8;    // 最低合格评分
 
@@ -36,7 +36,7 @@ internal sealed class FeedbackExecutor : Executor<SloganResult>
         };
 
         _agent = new ChatClientAgent(chatClient, agentOptions);
-        thread = _agent.GetNewThread();
+        session = _agent.CreateSessionAsync().Result;
     }
 
     public override async ValueTask HandleAsync(SloganResult message, IWorkflowContext context, CancellationToken cancellationToken = default)
@@ -56,7 +56,7 @@ internal sealed class FeedbackExecutor : Executor<SloganResult>
             
             """;
 
-        var response = await _agent.RunAsync(sloganMessage, thread, cancellationToken: cancellationToken);
+        var response = await _agent.RunAsync(sloganMessage, session, cancellationToken: cancellationToken);
         var feedback = JsonSerializer.Deserialize<FeedbackResult>(response.Text) ?? throw new InvalidOperationException("Failed to deserialize feedback.");
 
         await context.AddEventAsync(new FeedbackEvent(feedback), cancellationToken);

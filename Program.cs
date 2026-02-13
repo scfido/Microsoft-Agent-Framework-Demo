@@ -1,7 +1,6 @@
-﻿using MafDemo.AISlogan;
-using MafDemo.Checkpoints;
-using MafDemo.Judge;
-using MafDemo.ThreadDemo;
+﻿using MafDemo.Agents.Agent_Step01_Running;
+using MafDemo.Agents.Agent_Step02_MultiturnConversation;
+using MafDemo.Olds.ThreadDemo;
 using Microsoft.Extensions.Configuration;
 
 namespace MafDemo;
@@ -22,6 +21,12 @@ internal class Program
         //await JudgeWorkflow.RunAsync();
         //await SloganWorkflow.RunAsync(configuration);
         //await CheckpointWorkflow.RunAsync();
-        await ThreadDemoAgent.RunAsync(configuration);
+        //await ThreadDemoAgent.RunAsync(configuration);
+
+        //await AgentStep01Running.Create(configuration)
+        //    .Running();
+
+        await (await AgentStep02MultiturnConversation.CreateAsync(configuration))
+            .RunningAsync();
     }
 }

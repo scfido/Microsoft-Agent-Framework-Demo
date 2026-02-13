@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace MafDemo.AISlogan;
+namespace MafDemo.Olds.AISlogan;
 
 /// <summary>
 /// 反馈结果

@@ -1,6 +1,6 @@
 using Microsoft.Agents.AI.Workflows;
 
-namespace MafDemo.Test01;
+namespace MafDemo.Olds.Test01;
 
 internal sealed class CustomEvent(string message) : WorkflowEvent(message) { }
 

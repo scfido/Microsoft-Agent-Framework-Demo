@@ -4,7 +4,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.VisualBasic;
 using System.Text.Json;
 
-namespace MafDemo.AISlogan;
+namespace MafDemo.Olds.AISlogan;
 
 /// <summary>
 /// 广告语生成 / 优化执行器
@@ -16,7 +16,7 @@ namespace MafDemo.AISlogan;
 internal sealed class SloganWriterExecutor : Executor
 {
     private readonly AIAgent _agent;
-    private readonly AgentThread _thread;
+    private readonly AgentSession session;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SloganWriterExecutor"/> class.
@@ -46,7 +46,7 @@ internal sealed class SloganWriterExecutor : Executor
         };
 
         _agent = new ChatClientAgent(chatClient, agentOptions);
-        _thread = _agent.GetNewThread();
+        session = _agent.CreateSessionAsync().Result;
     }
 
     protected override RouteBuilder ConfigureRoutes(RouteBuilder routeBuilder) =>
@@ -58,7 +58,7 @@ internal sealed class SloganWriterExecutor : Executor
     /// </summary>
     public async ValueTask<SloganResult> HandleAsync(string message, IWorkflowContext context, CancellationToken cancellationToken = default)
     {
-        var result = await _agent.RunAsync(message, _thread, cancellationToken: cancellationToken);
+        var result = await _agent.RunAsync(message, session, cancellationToken: cancellationToken);
 
          var sloganResult = JsonSerializer.Deserialize<SloganResult>(result.Text) ?? throw new InvalidOperationException("Failed to deserialize slogan result.");
         //var sloganResult = new SloganResult { Task = message, Slogan = result.Text };
@@ -80,7 +80,7 @@ internal sealed class SloganWriterExecutor : Executor
             请使用这些反馈来改进你的广告语。
             """;
 
-        var result = await _agent.RunAsync(feedbackMessage, _thread, cancellationToken: cancellationToken);
+        var result = await _agent.RunAsync(feedbackMessage, session, cancellationToken: cancellationToken);
         // var sloganResult = JsonSerializer.Deserialize<SloganResult>(result.Text) ?? throw new InvalidOperationException("Failed to deserialize slogan result.");
         var sloganResult = new SloganResult { Task = message.Actions, Slogan = result.Text };
 

@@ -3,7 +3,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using System.ClientModel;
 
-namespace MafDemo.ThreadDemo;
+namespace MafDemo.Olds.ThreadDemo;
 
 internal class ThreadDemoAgent
 {
@@ -22,7 +22,7 @@ internal class ThreadDemoAgent
                      }
                  )
                  .AsIChatClient()
-                 .CreateAIAgent(new ChatClientAgentOptions
+                 .AsAIAgent(new ChatClientAgentOptions
                  {
                      ChatOptions = new()
                      {
@@ -30,7 +30,7 @@ internal class ThreadDemoAgent
                      },
                      Name = "Joker",
                      // 使用自定义的聊天消息存储，实现消息的持久化
-                     ChatMessageStoreFactory = context => new CustomeChatMessageStore(context.SerializedState, context.JsonSerializerOptions)
+                     //AIContextProviderFactory = (ctx, ct) => new CustomeChatMessageStore(ctx.SerializedState, context.JsonSerializerOptions)
                  });
 
         return agent;
@@ -39,9 +39,9 @@ internal class ThreadDemoAgent
     public static async Task RunAsync(IConfiguration configuration)
     {
         var agent = Build(configuration);
-        var thread = agent.GetNewThread();
-
-        await foreach (var update in agent.RunStreamingAsync("给我讲个笑话", thread))
+        var session = await agent.CreateSessionAsync();
+        
+        await foreach (var update in agent.RunStreamingAsync("讲个笑话", session))
         {
             Console.Write(update);
         }
@@ -49,12 +49,12 @@ internal class ThreadDemoAgent
         Console.WriteLine();
         Console.WriteLine("-----");
 
-        await foreach (var update in agent.RunStreamingAsync("再讲个类似的笑话。", thread))
+        await foreach (var update in agent.RunStreamingAsync("再讲个类似的笑话。", session))
         {
             Console.Write(update);
         }
 
-        IList<ChatMessage>? messages = thread.GetService<IList<ChatMessage>>();
+        IList<ChatMessage>? messages = session.GetService<IList<ChatMessage>>();
         Console.WriteLine($"Thread message count:{messages?.Count}");
     }
 }
