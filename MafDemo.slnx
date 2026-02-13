@@ -1,6 +1,9 @@
 <Solution>
   <Folder Name="/A2A/">
     <Project Path="A2A/TravelPlanner/HotelAgentServer/HotelAgentServer.csproj" />
+    <Project Path="A2A/TravelPlanner/PlanAgentServer/PlanAgentServer.csproj" />
+    <Project Path="A2A/TravelPlanner/WeatherAgentServer/WeatherAgentServer.csproj" />
+    <Project Path="A2A/TravelPlanner/TravelPlannerClient/TravelPlannerClient.csproj" />
   </Folder>
   <Project Path="GettingStarted/GettingStarted.csproj" />
 </Solution>

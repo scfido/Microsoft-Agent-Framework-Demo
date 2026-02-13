@@ -1,0 +1,77 @@
+﻿using A2A;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
+using OpenAI;
+using System.ClientModel;
+using TravelPlannerClient.Utils;
+
+// Load Configuration
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile($"appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.Development.json", optional: true, reloadOnChange: true)
+    .Build();
+
+var aiEndpoint = configuration["OpenAI:Endpoint"]
+    ?? throw new InvalidOperationException("配置项 'OpenAI:Endpoint' 未找到");
+var apiKey = configuration["OpenAI:ApiKey"]
+    ?? throw new InvalidOperationException("配置项 'OpenAI:ApiKey' 未找到");
+
+// Step1. Create one ChatClient
+var chatClient = new OpenAIClient(
+        new ApiKeyCredential(apiKey),
+        new OpenAIClientOptions { Endpoint = new Uri(aiEndpoint) })
+    .GetChatClient("GLM-4.7-Flash")
+    .AsIChatClient();
+
+// Step2. Define agent endpoints for A2A communication
+var agentEndpoints = new[]
+{
+    "https://localhost:7021/a2a", // hotel agent 
+    "https://localhost:7011/a2a", // weather agent
+    "https://localhost:7031/a2a" // plan agent
+};
+
+// Step3. Collecting all AI Tools
+var functionTools = new List<AIFunction>();
+foreach (var endpoint in agentEndpoints)
+{
+    var resolver = new A2ACardResolver(new Uri(endpoint));
+    var card = await resolver.GetAgentCardAsync();
+    var agent = card.AsAIAgent(); // Convert A2A Agent to AIAgent instance
+
+    functionTools.AddRange(AgentFunctionHelper.CreateFunctionTools(agent, card));
+}
+
+// Step4. Create main AI Agent with Tools
+var mainAgent = new ChatClientAgent(
+    chatClient: chatClient,
+    instructions: """
+    你是一个智能旅行规划助手。你可以利用可用的工具来帮助用户完成任务。
+    当用户询问时，请使用合适的工具获取信息，然后回复用户。
+    """,
+    tools: [.. functionTools]
+   );
+
+// 用户请求 - 测试不同的技能调用
+var userRequests = new[]
+{
+    "查询一下上海的天气情况",
+    "推荐一下上海的酒店",
+    "帮我规划一下今日上海的一日游景点，并告诉我该如何穿衣服",
+};
+
+foreach (var userRequest in userRequests)
+{
+    Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    Console.WriteLine($"👤 用户请求: {userRequest}");
+    Console.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    // 执行 Agent
+    Console.WriteLine("⏱️ 主 Agent 处理中...");
+    var response = await mainAgent.RunAsync(userRequest);
+    Console.WriteLine($"💬 回答:\n{response.Text}");
+    Console.WriteLine();
+}
+
+Console.ReadKey();
