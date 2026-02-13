@@ -5,7 +5,7 @@ using OpenAI;
 using OpenAI.Chat;
 using System.ClientModel;
 
-namespace MafDemo.Agents.Agent_Step01_Running;
+namespace GettingStarted.Agents.Agent_Step01_Running;
 
 public class AgentStep01Running
 {

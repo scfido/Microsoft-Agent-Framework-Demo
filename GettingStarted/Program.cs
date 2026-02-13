@@ -1,9 +1,7 @@
-﻿using MafDemo.Agents.Agent_Step01_Running;
-using MafDemo.Agents.Agent_Step02_MultiturnConversation;
-using MafDemo.Olds.ThreadDemo;
+﻿using GettingStarted.Agents.Agent_Step02_MultiturnConversation;
 using Microsoft.Extensions.Configuration;
 
-namespace MafDemo;
+namespace GettingStarted;
 
 internal class Program
 {

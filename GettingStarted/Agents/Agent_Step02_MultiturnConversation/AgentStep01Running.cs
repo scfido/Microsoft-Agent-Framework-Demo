@@ -5,7 +5,7 @@ using OpenAI;
 using OpenAI.Chat;
 using System.ClientModel;
 
-namespace MafDemo.Agents.Agent_Step02_MultiturnConversation;
+namespace GettingStarted.Agents.Agent_Step02_MultiturnConversation;
 
 public class AgentStep02MultiturnConversation
 {
