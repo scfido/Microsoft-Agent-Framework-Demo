@@ -6,7 +6,7 @@
     <Project Path="A2A/TravelPlanner/WeatherAgentServer/WeatherAgentServer.csproj" />
   </Folder>
   <Folder Name="/AgentSkills/">
-    <Project Path="AgentSkills/AgentSkillProvider/AgentSkillProvider.csproj" />
+    <Project Path="AgentSkills/AutoBot/AutoBot.csproj" />
     <Project Path="AgentSkills/ClientAgent/ClientAgents.csproj" />
   </Folder>
   <Project Path="Cowork/Cowork.csproj" Id="f990edb9-dc97-42a5-ac10-3efea30b1fe7" />

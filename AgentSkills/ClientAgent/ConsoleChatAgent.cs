@@ -1,6 +1,7 @@
-﻿using Microsoft.Agents.AI;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using OpenAI;
 using System.ClientModel;
 
@@ -17,40 +18,46 @@ public class ConsoleChatAgent
 
     public static Task<ConsoleChatAgent> CreateAsync(IConfiguration configuration)
     {
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole()
+                .SetMinimumLevel(LogLevel.Debug);
+        });
+
         var endpoint = configuration["OpenAI:Endpoint"]
             ?? throw new InvalidOperationException("配置项 'OpenAI:Endpoint' 未找到");
         var apiKey = configuration["OpenAI:ApiKey"]
             ?? throw new InvalidOperationException("配置项 'OpenAI:ApiKey' 未找到");
+        var model = configuration["OpenAI:Model"] ?? "gpt-4o";
 
         var chatClient = new OpenAIClient(
                 new ApiKeyCredential(apiKey),
                 new OpenAIClientOptions()
                 {
-                    Endpoint = new Uri(endpoint)
+                    Endpoint = new Uri(endpoint),
+                    //ClientLoggingOptions = new System.ClientModel.Primitives.ClientLoggingOptions()
+                    //{
+                    //    EnableLogging = true, // 开启日志
+                    //    LoggerFactory = loggerFactory, // 使用上面创建的 LoggerFactory
+                    //    EnableMessageContentLogging = true, // 打印消息内容
+                    //}
                 }
             )
-            .GetChatClient("deepseek-chat")
+            .GetChatClient(model)
             .AsIChatClient();
 
-        // Create skills-enabled agent using the new factory pattern
-        var agent = chatClient.AsSkillsAIAgent(
-            configureSkills: options =>
+        var agent = chatClient.AsAutoBotAgent(options =>
             {
                 options.AgentName = "my-assistant";
                 options.ProjectRoot = Directory.GetCurrentDirectory();
 
-                // Enable tools
-                options.ToolsOptions.EnableReadSkillTool = true;
-                options.ToolsOptions.EnableReadFileTool = true;
-                options.ToolsOptions.EnableListDirectoryTool = true;
-                options.ToolsOptions.EnableRunCommandTool = true;
-            },
-            configureAgent: options =>
-            {
-                options.ChatOptions = new()
-                {
-                    Instructions = "You are a helpful assistant with access to specialized skills."
-                };
+                // Enable Skill tools
+                options.Tools.EnableReadSkill = true;
+                options.Tools.EnableReadFile = true;
+                options.Tools.EnableListDirectory = true;
+                options.Tools.EnableRunCommand = true;
+                options.Tools.EnableSearchFiles = true;
+                options.Tools.EnableWriteFile = true;
             });
 
         return Task.FromResult(new ConsoleChatAgent(agent));
