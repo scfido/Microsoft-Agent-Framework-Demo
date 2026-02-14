@@ -23,7 +23,7 @@ public static class ChatClientExtensions
     ///     {
     ///         options.AgentName = "my-assistant";
     ///         options.ProjectRoot = Directory.GetCurrentDirectory();
-    ///         options.Tools.EnableRunCommand = true;
+    ///         options.EnableRunCommand = true;
     ///         options.ExecutionPolicy.AllowedCommands.Add("git");
     ///     },
     ///     configureAgent: options =>

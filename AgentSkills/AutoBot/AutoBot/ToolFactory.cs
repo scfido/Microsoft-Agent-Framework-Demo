@@ -37,32 +37,32 @@ public sealed class ToolFactory
     {
         var tools = new List<AITool>();
 
-        if (_options.Tools.EnableReadFile)
+        if (_options.EnableReadFile)
         {
-            tools.Add(ReadFileTool.CreateTool(_options, _state));
+            tools.Add(ReadFileTool.CreateTool(_options));
         }
 
-        if (_options.Tools.EnableWriteFile)
+        if (_options.EnableWriteFile)
         {
-            tools.Add(WriteFileTool.CreateTool(_options, _state));
+            tools.Add(WriteFileTool.CreateTool(_options));
         }
 
-        if (_options.Tools.EnableListDirectory)
+        if (_options.EnableListDirectory)
         {
-            tools.Add(ListDirectoryTool.CreateTool(_options, _state));
+            tools.Add(ListDirectoryTool.CreateTool(_options));
         }
 
-        if (_options.Tools.EnableSearchFiles)
+        if (_options.EnableSearchFiles)
         {
-            tools.Add(SearchFilesTool.CreateTool(_options, _state));
+            tools.Add(SearchFilesTool.CreateTool(_options));
         }
 
-        if (_options.Tools.EnableRunCommand)
+        if (_options.EnableRunCommand)
         {
             tools.Add(RunCommandTool.CreateTool(_options));
         }
 
-        if (_options.Tools.EnableReadSkill && _state.AllSkills.Count > 0)
+        if (_options.EnableReadSkill && _state.AllSkills.Count > 0)
         {
             tools.Add(ReadSkillTool.CreateTool(_state, _skillLoader));
         }

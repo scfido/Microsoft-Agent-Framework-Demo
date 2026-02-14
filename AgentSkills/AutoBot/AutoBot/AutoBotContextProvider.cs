@@ -1,7 +1,5 @@
-using AutoBot.Loading;
-using AutoBot.Skills;
+using AutoBot.SkillEngine;
 using Microsoft.Agents.AI;
-using Microsoft.Extensions.AI;
 using System.Text.Json;
 
 namespace AutoBot;
@@ -88,17 +86,17 @@ public sealed class AutoBotContextProvider : AIContextProvider
         var projectSkills = new List<SkillMetadata>();
 
         // 加载用户级技能
-        if (_options.SkillCatalog.EnableUserSkills)
+        if (_options.EnableUserSkills)
         {
-            var userDir = _options.SkillCatalog.UserSkillsDirectoryOverride
+            var userDir = _options.UserSkillsDirectoryOverride
                 ?? GetDefaultUserSkillsDirectory(_options.AgentName);
             userSkills.AddRange(_skillLoader.LoadSkillsFromDirectory(userDir, SkillSource.User));
         }
 
         // 加载项目级技能
-        if (_options.SkillCatalog.EnableProjectSkills && _options.ProjectRoot != null)
+        if (_options.EnableProjectSkills && _options.ProjectRoot != null)
         {
-            var projectDir = _options.SkillCatalog.ProjectSkillsDirectoryOverride
+            var projectDir = _options.ProjectSkillsDirectoryOverride
                 ?? GetDefaultProjectSkillsDirectory(_options.ProjectRoot);
             projectSkills.AddRange(_skillLoader.LoadSkillsFromDirectory(projectDir, SkillSource.Project));
         }

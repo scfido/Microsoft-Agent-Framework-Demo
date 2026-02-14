@@ -138,16 +138,16 @@ public static class SkillsSystemPromptTemplates
     {
         var lines = new List<string>();
 
-        if (options.SkillCatalog.EnableProjectSkills && !string.IsNullOrWhiteSpace(options.ProjectRoot))
+        if (options.EnableProjectSkills && !string.IsNullOrWhiteSpace(options.ProjectRoot))
         {
-            var projectPath = options.SkillCatalog.ProjectSkillsDirectoryOverride
+            var projectPath = options.ProjectSkillsDirectoryOverride
                 ?? Path.Combine(options.ProjectRoot, ".maf", "skills");
             lines.Add($"- Project skills location: `{projectPath}`");
         }
 
-        if (options.SkillCatalog.EnableUserSkills)
+        if (options.EnableUserSkills)
         {
-            var userPath = options.SkillCatalog.UserSkillsDirectoryOverride
+            var userPath = options.UserSkillsDirectoryOverride
                 ?? Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                     ".maf",

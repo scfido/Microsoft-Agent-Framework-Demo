@@ -224,7 +224,7 @@ public sealed class RunCommandTool
         process.BeginErrorReadLine();
 
         // 应用超时
-        var timeoutMs = _options.Tools.CommandTimeoutSeconds * 1000;
+        var timeoutMs = _options.CommandTimeoutSeconds * 1000;
         var completed = await Task.Run(() => process.WaitForExit(timeoutMs), cancellationToken);
 
         if (!completed)
@@ -234,7 +234,7 @@ public sealed class RunCommandTool
             {
                 ExitCode = -1,
                 Output = outputBuilder.ToString(),
-                Error = $"命令执行超时（{_options.Tools.CommandTimeoutSeconds} 秒）"
+                Error = $"命令执行超时（{_options.CommandTimeoutSeconds} 秒）"
             };
         }
 
@@ -242,14 +242,14 @@ public sealed class RunCommandTool
         var error = errorBuilder.ToString();
 
         // 限制输出大小
-        if (output.Length > _options.Tools.MaxOutputSizeBytes)
+        if (output.Length > _options.MaxOutputSizeBytes)
         {
-            output = output.Substring(0, _options.Tools.MaxOutputSizeBytes) + "\n...(输出已截断)";
+            output = output.Substring(0, _options.MaxOutputSizeBytes) + "\n...(输出已截断)";
         }
 
-        if (error.Length > _options.Tools.MaxOutputSizeBytes)
+        if (error.Length > _options.MaxOutputSizeBytes)
         {
-            error = error.Substring(0, _options.Tools.MaxOutputSizeBytes) + "\n...(错误输出已截断)";
+            error = error.Substring(0, _options.MaxOutputSizeBytes) + "\n...(错误输出已截断)";
         }
 
         return new CommandResult

@@ -52,12 +52,12 @@ public class ConsoleChatAgent
                 options.ProjectRoot = Directory.GetCurrentDirectory();
 
                 // Enable Skill tools
-                options.Tools.EnableReadSkill = true;
-                options.Tools.EnableReadFile = true;
-                options.Tools.EnableListDirectory = true;
-                options.Tools.EnableRunCommand = true;
-                options.Tools.EnableSearchFiles = true;
-                options.Tools.EnableWriteFile = true;
+                options.EnableReadSkill = true;
+                options.EnableReadFile = true;
+                options.EnableListDirectory = true;
+                options.EnableRunCommand = true;
+                options.EnableSearchFiles = true;
+                options.EnableWriteFile = true;
             });
 
         return Task.FromResult(new ConsoleChatAgent(agent));

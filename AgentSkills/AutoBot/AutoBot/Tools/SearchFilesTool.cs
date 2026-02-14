@@ -1,4 +1,3 @@
-using AgentSkills.Loading;
 using Microsoft.Extensions.AI;
 using System.ComponentModel;
 using System.Text.Json;
@@ -6,28 +5,26 @@ using System.Text.Json;
 namespace AutoBot.Tools;
 
 /// <summary>
-/// 搜索文件工具，支持 workspace 和 skill 作用域。
+/// 搜索文件工具，在 workspace 作用域内搜索文件。
 /// </summary>
 public sealed class SearchFilesTool
 {
     private readonly RuntimeOptions _options;
-    private readonly SkillsState _state;
 
     /// <summary>
     /// 初始化 SearchFilesTool 实例。
     /// </summary>
-    public SearchFilesTool(RuntimeOptions options, SkillsState state)
+    public SearchFilesTool(RuntimeOptions options)
     {
         _options = options;
-        _state = state;
     }
 
     /// <summary>
     /// 创建工具定义。
     /// </summary>
-    public static AITool CreateTool(RuntimeOptions options, SkillsState state)
+    public static AITool CreateTool(RuntimeOptions options)
     {
-        var tool = new SearchFilesTool(options, state);
+        var tool = new SearchFilesTool(options);
         return AIFunctionFactory.Create(tool.ExecuteAsync, "search_files");
     }
 
@@ -37,8 +34,6 @@ public sealed class SearchFilesTool
     [Description("按文件名模式或内容关键字搜索文件")]
     public async Task<string> ExecuteAsync(
         [Description("搜索模式（文件名或内容关键字）")] string pattern,
-        [Description("作用域：workspace（默认）或 skill")] string scope = "workspace",
-        [Description("当 scope=skill 时必填的技能名称")] string? skillName = null,
         [Description("搜索内容而非文件名")] bool searchContent = false,
         CancellationToken cancellationToken = default)
     {
@@ -46,9 +41,7 @@ public sealed class SearchFilesTool
 
         try
         {
-            // 解析作用域
-            var toolScope = Enum.Parse<ToolScope>(scope, ignoreCase: true);
-            var baseDir = ResolveBaseDirectory(toolScope, skillName);
+            var baseDir = _options.WorkingDirectory;
 
             var results = new List<object>();
 
@@ -100,7 +93,7 @@ public sealed class SearchFilesTool
                 try
                 {
                     var fileInfo = new FileInfo(file);
-                    if (fileInfo.Length > _options.Tools.MaxFileSizeBytes) continue;
+                    if (fileInfo.Length > _options.MaxFileSizeBytes) continue;
 
                     var content = File.ReadAllText(file);
                     if (content.Contains(pattern, StringComparison.OrdinalIgnoreCase))
@@ -129,23 +122,4 @@ public sealed class SearchFilesTool
         }
     }
 
-    private string ResolveBaseDirectory(ToolScope scope, string? skillName)
-    {
-        return scope switch
-        {
-            ToolScope.Workspace => _options.WorkingDirectory,
-            ToolScope.Skill => ResolveSkillDirectory(skillName ?? throw new ArgumentException("skillName 在 scope=skill 时必填")),
-            _ => throw new ArgumentException($"不支持的作用域: {scope}")
-        };
-    }
-
-    private string ResolveSkillDirectory(string skillName)
-    {
-        var skill = _state.GetSkill(skillName);
-        if (skill == null)
-        {
-            throw new ArgumentException($"技能 '{skillName}' 未找到");
-        }
-        return skill.Path;
-    }
 }

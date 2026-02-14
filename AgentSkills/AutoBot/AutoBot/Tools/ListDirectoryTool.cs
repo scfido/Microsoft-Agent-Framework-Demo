@@ -6,28 +6,26 @@ using System.Text.Json;
 namespace AutoBot.Tools;
 
 /// <summary>
-/// 列出目录工具，支持 workspace 和 skill 作用域。
+/// 列出目录工具，在 workspace 作用域内列出目录内容。
 /// </summary>
 public sealed class ListDirectoryTool
 {
     private readonly RuntimeOptions _options;
-    private readonly SkillsState _state;
 
     /// <summary>
     /// 初始化 ListDirectoryTool 实例。
     /// </summary>
-    public ListDirectoryTool(RuntimeOptions options, SkillsState state)
+    public ListDirectoryTool(RuntimeOptions options)
     {
         _options = options;
-        _state = state;
     }
 
     /// <summary>
     /// 创建工具定义。
     /// </summary>
-    public static AITool CreateTool(RuntimeOptions options, SkillsState state)
+    public static AITool CreateTool(RuntimeOptions options)
     {
-        var tool = new ListDirectoryTool(options, state);
+        var tool = new ListDirectoryTool(options);
         return AIFunctionFactory.Create(tool.ExecuteAsync, "list_directory");
     }
 
@@ -37,17 +35,13 @@ public sealed class ListDirectoryTool
     [Description("列出目录内容")]
     public async Task<string> ExecuteAsync(
         [Description("目录相对路径（可选，默认为根目录）")] string? relativePath = null,
-        [Description("作用域：workspace（默认）或 skill")] string scope = "workspace",
-        [Description("当 scope=skill 时必填的技能名称")] string? skillName = null,
         CancellationToken cancellationToken = default)
     {
         await Task.CompletedTask; // 占位，保持异步签名
 
         try
         {
-            // 解析作用域
-            var toolScope = Enum.Parse<ToolScope>(scope, ignoreCase: true);
-            var baseDir = ResolveBaseDirectory(toolScope, skillName);
+            var baseDir = _options.WorkingDirectory;
 
             // 安全解析路径
             var targetDir = string.IsNullOrEmpty(relativePath)
@@ -108,23 +102,4 @@ public sealed class ListDirectoryTool
         }
     }
 
-    private string ResolveBaseDirectory(ToolScope scope, string? skillName)
-    {
-        return scope switch
-        {
-            ToolScope.Workspace => _options.WorkingDirectory,
-            ToolScope.Skill => ResolveSkillDirectory(skillName ?? throw new ArgumentException("skillName 在 scope=skill 时必填")),
-            _ => throw new ArgumentException($"不支持的作用域: {scope}")
-        };
-    }
-
-    private string ResolveSkillDirectory(string skillName)
-    {
-        var skill = _state.GetSkill(skillName);
-        if (skill == null)
-        {
-            throw new ArgumentException($"技能 '{skillName}' 未找到");
-        }
-        return skill.Path;
-    }
 }

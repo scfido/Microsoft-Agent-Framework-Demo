@@ -6,28 +6,26 @@ using System.Text.Json;
 namespace AutoBot.Tools;
 
 /// <summary>
-/// 写入文件工具，支持 workspace 和 skill 作用域。
+/// 写入文件工具，在 workspace 作用域内写入文件。
 /// </summary>
 public sealed class WriteFileTool
 {
     private readonly RuntimeOptions _options;
-    private readonly SkillsState _state;
 
     /// <summary>
     /// 初始化 WriteFileTool 实例。
     /// </summary>
-    public WriteFileTool(RuntimeOptions options, SkillsState state)
+    public WriteFileTool(RuntimeOptions options)
     {
         _options = options;
-        _state = state;
     }
 
     /// <summary>
     /// 创建工具定义。
     /// </summary>
-    public static AITool CreateTool(RuntimeOptions options, SkillsState state)
+    public static AITool CreateTool(RuntimeOptions options)
     {
-        var tool = new WriteFileTool(options, state);
+        var tool = new WriteFileTool(options);
         return AIFunctionFactory.Create(tool.ExecuteAsync, "write_file");
     }
 
@@ -38,15 +36,11 @@ public sealed class WriteFileTool
     public async Task<string> ExecuteAsync(
         [Description("文件相对路径")] string filePath,
         [Description("要写入的内容")] string content,
-        [Description("作用域：workspace（默认）或 skill")] string scope = "workspace",
-        [Description("当 scope=skill 时必填的技能名称")] string? skillName = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            // 解析作用域
-            var toolScope = Enum.Parse<ToolScope>(scope, ignoreCase: true);
-            var baseDir = ResolveBaseDirectory(toolScope, skillName);
+            var baseDir = _options.WorkingDirectory;
 
             // 安全解析路径
             var safePath = PathSecurity.ResolveSafePath(baseDir, filePath);
@@ -90,23 +84,4 @@ public sealed class WriteFileTool
         }
     }
 
-    private string ResolveBaseDirectory(ToolScope scope, string? skillName)
-    {
-        return scope switch
-        {
-            ToolScope.Workspace => _options.WorkingDirectory,
-            ToolScope.Skill => ResolveSkillDirectory(skillName ?? throw new ArgumentException("skillName 在 scope=skill 时必填")),
-            _ => throw new ArgumentException($"不支持的作用域: {scope}")
-        };
-    }
-
-    private string ResolveSkillDirectory(string skillName)
-    {
-        var skill = _state.GetSkill(skillName);
-        if (skill == null)
-        {
-            throw new ArgumentException($"技能 '{skillName}' 未找到");
-        }
-        return skill.Path;
-    }
 }
