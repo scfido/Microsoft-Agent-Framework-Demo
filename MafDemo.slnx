@@ -2,8 +2,13 @@
   <Folder Name="/A2A/">
     <Project Path="A2A/TravelPlanner/HotelAgentServer/HotelAgentServer.csproj" />
     <Project Path="A2A/TravelPlanner/PlanAgentServer/PlanAgentServer.csproj" />
-    <Project Path="A2A/TravelPlanner/WeatherAgentServer/WeatherAgentServer.csproj" />
     <Project Path="A2A/TravelPlanner/TravelPlannerClient/TravelPlannerClient.csproj" />
+    <Project Path="A2A/TravelPlanner/WeatherAgentServer/WeatherAgentServer.csproj" />
   </Folder>
+  <Folder Name="/AgentSkills/">
+    <Project Path="AgentSkills/AgentSkillProvider/AgentSkillProvider.csproj" />
+    <Project Path="AgentSkills/ClientAgent/ClientAgents.csproj" />
+  </Folder>
+  <Project Path="Cowork/Cowork.csproj" Id="f990edb9-dc97-42a5-ac10-3efea30b1fe7" />
   <Project Path="GettingStarted/GettingStarted.csproj" />
 </Solution>

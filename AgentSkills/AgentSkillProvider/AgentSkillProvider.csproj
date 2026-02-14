@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+	  <RootNamespace></RootNamespace>
+    
+    <!-- Package Information -->
+    <PackageId>Maf.AgentSkills</PackageId>
+    <Version>0.1.0-preview</Version>
+    <Authors>Maf.AgentSkills Contributors</Authors>
+    <Description>Agent Skills integration for Microsoft Agent Framework (MAF). Enables AI agents to leverage reusable skills following the Agent Skills specification (https://agentskills.io).</Description>
+    <PackageTags>ai;agents;skills;maf;llm</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    
+    <!-- Build Settings -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- YAML Frontmatter Parsing -->
+    <PackageReference Include="YamlDotNet" />
+    
+    <!-- Microsoft Agent Framework -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    
+    <!-- Microsoft.Extensions.AI for AITool, ChatClient and related abstractions -->
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
+    
+    <!-- Logging -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    
+    <!-- Options pattern -->
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    
+    <!-- DI support -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>
