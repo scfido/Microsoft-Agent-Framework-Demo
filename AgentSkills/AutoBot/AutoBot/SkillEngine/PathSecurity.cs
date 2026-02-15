@@ -2,16 +2,18 @@ namespace AutoBot.SkillEngine;
 
 /// <summary>
 /// 提供路径安全工具，防止目录遍历攻击。
+/// 适用于 Skill 目录访问和 Tool 运行时的路径校验。
 /// </summary>
 public static class PathSecurity
 {
     /// <summary>
-    /// 验证路径是否安全地包含在允许的基目录内。
+    /// 验证路径是否安全地包含在允许的基目录内（含基目录本身）。
     /// 防止使用 ".."、符号链接等进行目录遍历攻击。
+    /// 适用于 Skill 目录访问和 Tool 运行时的路径校验。
     /// </summary>
-    /// <param name="path">待验证的路径。</param>
+    /// <param name="path">待验证的路径（可以是绝对路径或相对路径）。</param>
     /// <param name="allowedBaseDirectory">路径必须包含在其中的基目录。</param>
-    /// <returns>如果路径安全且包含在基目录内则返回 true，否则返回 false。</returns>
+    /// <returns>如果路径安全且包含在基目录内（或等于基目录）则返回 true，否则返回 false。</returns>
     public static bool IsPathSafe(string path, string allowedBaseDirectory)
     {
         if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(allowedBaseDirectory))
@@ -24,6 +26,12 @@ public static class PathSecurity
             // Get the full, normalized paths
             var normalizedPath = Path.GetFullPath(path);
             var normalizedBase = Path.GetFullPath(allowedBaseDirectory);
+
+            // Allow the base directory itself (e.g. relativePath=".")
+            if (string.Equals(normalizedPath, normalizedBase, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
 
             // Ensure base path ends with directory separator for proper prefix checking
             if (!normalizedBase.EndsWith(Path.DirectorySeparatorChar))
@@ -42,35 +50,37 @@ public static class PathSecurity
     }
 
     /// <summary>
-    /// Validates that a path is safely contained within any of the allowed base directories.
+    /// 验证路径是否安全地包含在任一允许的基目录内（含基目录本身）。
+    /// 适用于 Skill 目录访问和 Tool 运行时的路径校验。
     /// </summary>
-    /// <param name="path">The path to validate.</param>
-    /// <param name="allowedBaseDirectories">The base directories the path may be contained within.</param>
-    /// <returns>True if the path is safe and contained within any allowed directory; otherwise, false.</returns>
+    /// <param name="path">待验证的路径。</param>
+    /// <param name="allowedBaseDirectories">允许的基目录集合。</param>
+    /// <returns>如果路径安全且包含在任一基目录内（或等于基目录）则返回 true，否则返回 false。</returns>
     public static bool IsPathSafe(string path, IEnumerable<string> allowedBaseDirectories)
     {
         return allowedBaseDirectories.Any(baseDir => IsPathSafe(path, baseDir));
     }
 
     /// <summary>
-    /// Resolves a relative path within a skill directory safely.
+    /// 在指定基目录内安全地解析相对路径。
+    /// 适用于 Skill 目录访问和 Tool 运行时的路径解析。
     /// </summary>
-    /// <param name="skillDirectory">The skill directory (absolute path).</param>
-    /// <param name="relativePath">The relative path within the skill.</param>
-    /// <returns>The resolved absolute path if safe; otherwise, null.</returns>
-    public static string? ResolveSafePath(string skillDirectory, string relativePath)
+    /// <param name="baseDirectory">基目录（绝对路径）。</param>
+    /// <param name="relativePath">基目录内的相对路径（"." 表示基目录本身）。</param>
+    /// <returns>如果路径安全则返回解析后的绝对路径，否则返回 null。</returns>
+    public static string? ResolveSafePath(string baseDirectory, string relativePath)
     {
-        if (string.IsNullOrWhiteSpace(skillDirectory) || string.IsNullOrWhiteSpace(relativePath))
+        if (string.IsNullOrWhiteSpace(baseDirectory) || string.IsNullOrWhiteSpace(relativePath))
         {
             return null;
         }
 
         try
         {
-            var combinedPath = Path.Combine(skillDirectory, relativePath);
+            var combinedPath = Path.Combine(baseDirectory, relativePath);
             var resolvedPath = Path.GetFullPath(combinedPath);
 
-            if (IsPathSafe(resolvedPath, skillDirectory))
+            if (IsPathSafe(resolvedPath, baseDirectory))
             {
                 return resolvedPath;
             }
@@ -84,10 +94,10 @@ public static class PathSecurity
     }
 
     /// <summary>
-    /// Checks if a file or directory is a symbolic link.
+    /// 检查文件或目录是否为符号链接。
     /// </summary>
-    /// <param name="path">The path to check.</param>
-    /// <returns>True if the path is a symbolic link; otherwise, false.</returns>
+    /// <param name="path">待检查的路径。</param>
+    /// <returns>如果是符号链接则返回 true，否则返回 false。</returns>
     public static bool IsSymbolicLink(string path)
     {
         try
@@ -113,10 +123,10 @@ public static class PathSecurity
     }
 
     /// <summary>
-    /// Gets the real path by resolving any symbolic links.
+    /// 解析符号链接，获取真实路径。
     /// </summary>
-    /// <param name="path">The path to resolve.</param>
-    /// <returns>The resolved real path, or null if resolution fails.</returns>
+    /// <param name="path">待解析的路径。</param>
+    /// <returns>解析后的真实路径，解析失败则返回 null。</returns>
     public static string? GetRealPath(string path)
     {
         try
@@ -142,11 +152,11 @@ public static class PathSecurity
     }
 
     /// <summary>
-    /// Validates a path is safe, resolving any symbolic links first.
+    /// 先解析符号链接，再验证路径是否安全地包含在允许的基目录内。
     /// </summary>
-    /// <param name="path">The path to validate.</param>
-    /// <param name="allowedBaseDirectory">The base directory the resolved path must be contained within.</param>
-    /// <returns>True if the resolved path is safe; otherwise, false.</returns>
+    /// <param name="path">待验证的路径。</param>
+    /// <param name="allowedBaseDirectory">解析后的路径必须包含在其中的基目录。</param>
+    /// <returns>如果解析后的路径安全则返回 true，否则返回 false。</returns>
     public static bool IsPathSafeWithSymlinkResolution(string path, string allowedBaseDirectory)
     {
         var realPath = GetRealPath(path);

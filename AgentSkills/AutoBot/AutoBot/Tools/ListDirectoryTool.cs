@@ -10,14 +10,14 @@ namespace AutoBot.Tools;
 /// </summary>
 public sealed class ListDirectoryTool
 {
-    private readonly AutoBotOptions _options;
+    private readonly AutoBotOptions options;
 
     /// <summary>
     /// 初始化 ListDirectoryTool 实例。
     /// </summary>
     public ListDirectoryTool(AutoBotOptions options)
     {
-        _options = options;
+        this.options = options;
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ public sealed class ListDirectoryTool
 
         try
         {
-            var baseDir = _options.WorkingDirectory;
+            var baseDir = options.WorkingDirectory;
 
             // 安全解析路径
             var targetDir = string.IsNullOrEmpty(relativePath)
@@ -58,7 +58,9 @@ public sealed class ListDirectoryTool
                 });
             }
 
-            if (!Directory.Exists(targetDir))
+            var dirInfo = new DirectoryInfo(targetDir);
+
+            if (!dirInfo.Exists)
             {
                 return JsonSerializer.Serialize(new
                 {
@@ -71,17 +73,14 @@ public sealed class ListDirectoryTool
             // 列出文件和目录
             var entries = new List<object>();
 
-            foreach (var dir in Directory.GetDirectories(targetDir))
+            foreach (var dir in dirInfo.GetDirectories())
             {
-                var name = Path.GetFileName(dir);
-                entries.Add(new { name, is_directory = true });
+                entries.Add(new { dir.Name, is_directory = true });
             }
 
-            foreach (var file in Directory.GetFiles(targetDir))
+            foreach (var file in dirInfo.GetFiles())
             {
-                var name = Path.GetFileName(file);
-                var size = new FileInfo(file).Length;
-                entries.Add(new { name, is_directory = false, size_bytes = size });
+                entries.Add(new { file.Name, is_directory = false, size_bytes = file.Length });
             }
 
             return JsonSerializer.Serialize(new
