@@ -12,12 +12,12 @@ namespace AutoBot.Tools;
 /// </summary>
 public sealed class RunCommandTool
 {
-    private readonly RuntimeOptions _options;
+    private readonly AutoBotOptions _options;
 
     /// <summary>
     /// 初始化 RunCommandTool 实例。
     /// </summary>
-    public RunCommandTool(RuntimeOptions options)
+    public RunCommandTool(AutoBotOptions options)
     {
         _options = options;
     }
@@ -25,7 +25,7 @@ public sealed class RunCommandTool
     /// <summary>
     /// 创建工具定义。
     /// </summary>
-    public static AITool CreateTool(RuntimeOptions options)
+    public static AITool CreateTool(AutoBotOptions options)
     {
         var tool = new RunCommandTool(options);
         return AIFunctionFactory.Create(tool.ExecuteAsync, "run_command");

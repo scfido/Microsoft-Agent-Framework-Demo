@@ -13,8 +13,6 @@ public static class SkillsSystemPromptTemplates
 
         You have access to a skills library that provides specialized capabilities and domain knowledge.
 
-        {skills_locations}
-
         **Available Skills:**
 
         {skills_list}
@@ -70,94 +68,24 @@ public static class SkillsSystemPromptTemplates
     /// 生成完整的系统提示（仅技能内容）。
     /// </summary>
     /// <param name="state">运行时状态。</param>
-    /// <param name="options">运行时配置选项。</param>
     /// <returns>系统提示字符串。</returns>
-    public static string GenerateSystemPrompt(SkillsState state, RuntimeOptions options)
+    public static string GenerateSystemPrompt(SkillsState state)
     {
         var skillsList = GenerateSkillsList(state);
-        var locationsDisplay = GenerateSkillsLocationsDisplay(options);
 
         return SystemPromptTemplate
-            .Replace("{skills_locations}", locationsDisplay)
             .Replace("{skills_list}", skillsList);
     }
 
     /// <summary>
-    /// 生成格式化的技能列表（项目级优先，用户级去重）。
+    /// 生成格式化的技能列表。
     /// </summary>
     private static string GenerateSkillsList(SkillsState state)
     {
-        var lines = new List<string>();
-
-        if (state.ProjectSkills.Count > 0)
-        {
-            lines.Add("*Project Skills:*");
-            foreach (var skill in state.ProjectSkills)
-            {
-                lines.Add(skill.ToDisplayString());
-            }
-        }
-
-        if (state.UserSkills.Count > 0)
-        {
-            var projectSkillNames = state.ProjectSkills
-                .Select(s => s.Name)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-            var nonOverriddenUserSkills = state.UserSkills
-                .Where(s => !projectSkillNames.Contains(s.Name))
-                .ToList();
-
-            if (nonOverriddenUserSkills.Count > 0)
-            {
-                if (lines.Count > 0)
-                {
-                    lines.Add(string.Empty);
-                }
-
-                lines.Add("*User Skills:*");
-                foreach (var skill in nonOverriddenUserSkills)
-                {
-                    lines.Add(skill.ToDisplayString());
-                }
-            }
-        }
-
-        if (lines.Count == 0)
-        {
+        if (state.Skills.Count == 0)
             return "*No skills available.*";
-        }
 
+        var lines = state.Skills.Select(s => s.ToDisplayString());
         return string.Join("\n", lines);
-    }
-
-    /// <summary>
-    /// 生成技能路径展示字符串。
-    /// </summary>
-    private static string GenerateSkillsLocationsDisplay(RuntimeOptions options)
-    {
-        var lines = new List<string>();
-
-        if (options.EnableProjectSkills && !string.IsNullOrWhiteSpace(options.ProjectRoot))
-        {
-            var projectPath = options.ProjectSkillsDirectoryOverride
-                ?? Path.Combine(options.ProjectRoot, ".maf", "skills");
-            lines.Add($"- Project skills location: `{projectPath}`");
-        }
-
-        if (options.EnableUserSkills)
-        {
-            var userPath = options.UserSkillsDirectoryOverride
-                ?? Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    ".maf",
-                    options.AgentName,
-                    "skills");
-            lines.Add($"- User skills location: `{userPath}`");
-        }
-
-        return lines.Count == 0
-            ? "- Skills locations are disabled by runtime configuration."
-            : string.Join("\n", lines);
     }
 }

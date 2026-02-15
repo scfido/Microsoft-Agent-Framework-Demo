@@ -10,12 +10,12 @@ namespace AutoBot.Tools;
 /// </summary>
 public sealed class ListDirectoryTool
 {
-    private readonly RuntimeOptions _options;
+    private readonly AutoBotOptions _options;
 
     /// <summary>
     /// 初始化 ListDirectoryTool 实例。
     /// </summary>
-    public ListDirectoryTool(RuntimeOptions options)
+    public ListDirectoryTool(AutoBotOptions options)
     {
         _options = options;
     }
@@ -23,7 +23,7 @@ public sealed class ListDirectoryTool
     /// <summary>
     /// 创建工具定义。
     /// </summary>
-    public static AITool CreateTool(RuntimeOptions options)
+    public static AITool CreateTool(AutoBotOptions options)
     {
         var tool = new ListDirectoryTool(options);
         return AIFunctionFactory.Create(tool.ExecuteAsync, "list_directory");

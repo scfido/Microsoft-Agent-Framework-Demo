@@ -9,20 +9,20 @@ namespace AutoBot;
 /// </summary>
 public sealed class AutoBotContextProvider : AIContextProvider
 {
-    private readonly RuntimeOptions _options;
-    private readonly SkillLoader _skillLoader;
-    private SkillsState _state;
+    private readonly AutoBotOptions options;
+    private readonly SkillLoader skillLoader;
+    private SkillsState skillsState;
 
     /// <summary>
     /// 初始化新实例（从配置创建）。
     /// </summary>
     /// <param name="options">运行时配置选项。</param>
     public AutoBotContextProvider(
-        RuntimeOptions options)
+        AutoBotOptions options)
     {
-        _options = options;
-        _skillLoader = new SkillLoader();
-        _state = LoadSkills();
+        this.options = options;
+        skillLoader = new SkillLoader();
+        skillsState = LoadSkills();
     }
 
     /// <summary>
@@ -36,9 +36,9 @@ public sealed class AutoBotContextProvider : AIContextProvider
     {
         // 反序列化状态和选项
         var restored = serializedState.Deserialize<RestoredContext>(jsonSerializerOptions);
-        _options = restored?.Options ?? new RuntimeOptions();
-        _state = restored?.State ?? new SkillsState();
-        _skillLoader = new SkillLoader();
+        options = restored?.Options ?? new AutoBotOptions();
+        skillsState = restored?.State ?? new SkillsState();
+        skillLoader = new SkillLoader();
     }
 
     /// <summary>
@@ -49,10 +49,10 @@ public sealed class AutoBotContextProvider : AIContextProvider
         CancellationToken cancellationToken = default)
     {
         // 生成系统提示
-        var systemPrompt = SkillsSystemPromptTemplates.GenerateSystemPrompt(_state, _options);
+        var systemPrompt = SkillsSystemPromptTemplates.GenerateSystemPrompt(skillsState);
 
         // 提供工具
-        var factory = new ToolFactory(_options, _state, _skillLoader);
+        var factory = new ToolFactory(options, skillsState, skillLoader);
 
         var aiContext = new AIContext
         {
@@ -70,8 +70,8 @@ public sealed class AutoBotContextProvider : AIContextProvider
     {
         var context = new RestoredContext
         {
-            Options = _options,
-            State = _state
+            Options = options,
+            State = skillsState
         };
 
         return JsonSerializer.SerializeToElement(context, jsonSerializerOptions);
@@ -82,48 +82,28 @@ public sealed class AutoBotContextProvider : AIContextProvider
     /// </summary>
     private SkillsState LoadSkills()
     {
-        var userSkills = new List<SkillMetadata>();
-        var projectSkills = new List<SkillMetadata>();
+        var skills = new List<SkillMetadata>();
 
-        // 加载用户级技能
-        if (_options.EnableUserSkills)
+        if (!string.IsNullOrEmpty(options.SkillsDirectory))
         {
-            var userDir = _options.UserSkillsDirectoryOverride
-                ?? GetDefaultUserSkillsDirectory(_options.AgentName);
-            userSkills.AddRange(_skillLoader.LoadSkillsFromDirectory(userDir, SkillSource.User));
+            if (options.SkillNames is not null)
+            {
+                foreach (var name in options.SkillNames)
+                {
+                    var skill = skillLoader.LoadSkillByName(options.SkillsDirectory, name);
+                    if (skill is not null)
+                    {
+                        skills.Add(skill);
+                    }
+                }
+            }
+            else
+            {
+                skills.AddRange(skillLoader.LoadSkillsFromDirectory(options.SkillsDirectory));
+            }
         }
 
-        // 加载项目级技能
-        if (_options.EnableProjectSkills && _options.ProjectRoot != null)
-        {
-            var projectDir = _options.ProjectSkillsDirectoryOverride
-                ?? GetDefaultProjectSkillsDirectory(_options.ProjectRoot);
-            projectSkills.AddRange(_skillLoader.LoadSkillsFromDirectory(projectDir, SkillSource.Project));
-        }
-
-        return new SkillsState
-        {
-            UserSkills = userSkills,
-            ProjectSkills = projectSkills,
-            LastRefreshed = DateTimeOffset.UtcNow
-        };
-    }
-
-    /// <summary>
-    /// 获取默认用户技能目录。
-    /// </summary>
-    private static string GetDefaultUserSkillsDirectory(string agentName)
-    {
-        var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        return Path.Combine(homeDir, ".maf", agentName, "skills");
-    }
-
-    /// <summary>
-    /// 获取默认项目技能目录。
-    /// </summary>
-    private static string GetDefaultProjectSkillsDirectory(string projectRoot)
-    {
-        return Path.Combine(projectRoot, ".maf", "skills");
+        return new SkillsState { Skills = skills };
     }
 
     /// <summary>
@@ -131,7 +111,7 @@ public sealed class AutoBotContextProvider : AIContextProvider
     /// </summary>
     private sealed class RestoredContext
     {
-        public RuntimeOptions Options { get; set; } = new();
+        public AutoBotOptions Options { get; set; } = new();
         public SkillsState State { get; set; } = new();
     }
 }

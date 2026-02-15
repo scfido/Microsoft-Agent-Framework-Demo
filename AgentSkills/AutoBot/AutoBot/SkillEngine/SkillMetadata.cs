@@ -14,9 +14,6 @@ namespace AutoBot.SkillEngine;
 /// <param name="Path">
 /// 包含 SKILL.md 的技能目录的绝对路径。
 /// </param>
-/// <param name="Source">
-/// 技能来自用户级还是项目级位置。
-/// </param>
 /// <param name="License">
 /// 可选。SPDX 许可证标识符（例如 "MIT"、"Apache-2.0"）。
 /// </param>
@@ -33,7 +30,6 @@ public sealed record SkillMetadata(
     string Name,
     string Description,
     string Path,
-    SkillSource Source,
     string? License = null,
     string? Compatibility = null,
     IReadOnlyDictionary<string, string>? Metadata = null,

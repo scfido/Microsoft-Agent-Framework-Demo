@@ -21,8 +21,8 @@ public static class ChatClientExtensions
     /// var agent = chatClient.AsAutoBotAgent(
     ///     configureRuntime: options =>
     ///     {
-    ///         options.AgentName = "my-assistant";
-    ///         options.ProjectRoot = Directory.GetCurrentDirectory();
+    ///         options.SkillsDirectory = Path.Combine(Directory.GetCurrentDirectory(), ".maf", "skills");
+    ///         options.SkillNames = new List&lt;string&gt; { "my-skill" };
     ///         options.EnableRunCommand = true;
     ///         options.ExecutionPolicy.AllowedCommands.Add("git");
     ///     },
@@ -34,12 +34,12 @@ public static class ChatClientExtensions
     /// </example>
     public static AIAgent AsAutoBotAgent(
         this IChatClient chatClient,
-        Action<RuntimeOptions>? configureRuntime = null,
+        Action<AutoBotOptions>? configureRuntime = null,
         Action<ChatClientAgentOptions>? configureAgent = null)
     {
         ArgumentNullException.ThrowIfNull(chatClient);
 
-        var runtimeOptions = new RuntimeOptions();
+        var runtimeOptions = new AutoBotOptions();
         configureRuntime?.Invoke(runtimeOptions);
 
         var agentOptions = new ChatClientAgentOptions

@@ -10,12 +10,12 @@ namespace AutoBot.Tools;
 /// </summary>
 public sealed class WriteFileTool
 {
-    private readonly RuntimeOptions _options;
+    private readonly AutoBotOptions _options;
 
     /// <summary>
     /// 初始化 WriteFileTool 实例。
     /// </summary>
-    public WriteFileTool(RuntimeOptions options)
+    public WriteFileTool(AutoBotOptions options)
     {
         _options = options;
     }
@@ -23,7 +23,7 @@ public sealed class WriteFileTool
     /// <summary>
     /// 创建工具定义。
     /// </summary>
-    public static AITool CreateTool(RuntimeOptions options)
+    public static AITool CreateTool(AutoBotOptions options)
     {
         var tool = new WriteFileTool(options);
         return AIFunctionFactory.Create(tool.ExecuteAsync, "write_file");

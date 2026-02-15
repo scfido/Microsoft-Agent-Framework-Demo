@@ -9,9 +9,9 @@ namespace AutoBot;
 /// </summary>
 public sealed class ToolFactory
 {
-    private readonly RuntimeOptions _options;
-    private readonly SkillsState _state;
-    private readonly SkillLoader _skillLoader;
+    private readonly AutoBotOptions options;
+    private readonly SkillsState skillsState;
+    private readonly SkillLoader skillLoader;
 
     /// <summary>
     /// 初始化工具工厂。
@@ -20,13 +20,13 @@ public sealed class ToolFactory
     /// <param name="state">运行时状态。</param>
     /// <param name="skillLoader">技能加载器。</param>
     public ToolFactory(
-        RuntimeOptions options,
+        AutoBotOptions options,
         SkillsState state,
         SkillLoader skillLoader)
     {
-        _options = options;
-        _state = state;
-        _skillLoader = skillLoader;
+        this.options = options;
+        skillsState = state;
+        this.skillLoader = skillLoader;
     }
 
     /// <summary>
@@ -37,34 +37,34 @@ public sealed class ToolFactory
     {
         var tools = new List<AITool>();
 
-        if (_options.EnableReadFile)
+        if (options.EnableReadFile)
         {
-            tools.Add(ReadFileTool.CreateTool(_options));
+            tools.Add(ReadFileTool.CreateTool(options));
         }
 
-        if (_options.EnableWriteFile)
+        if (options.EnableWriteFile)
         {
-            tools.Add(WriteFileTool.CreateTool(_options));
+            tools.Add(WriteFileTool.CreateTool(options));
         }
 
-        if (_options.EnableListDirectory)
+        if (options.EnableListDirectory)
         {
-            tools.Add(ListDirectoryTool.CreateTool(_options));
+            tools.Add(ListDirectoryTool.CreateTool(options));
         }
 
-        if (_options.EnableSearchFiles)
+        if (options.EnableSearchFiles)
         {
-            tools.Add(SearchFilesTool.CreateTool(_options));
+            tools.Add(SearchFilesTool.CreateTool(options));
         }
 
-        if (_options.EnableRunCommand)
+        if (options.EnableRunCommand)
         {
-            tools.Add(RunCommandTool.CreateTool(_options));
+            tools.Add(RunCommandTool.CreateTool(options));
         }
 
-        if (_options.EnableReadSkill && _state.AllSkills.Count > 0)
+        if (options.EnableReadSkill && skillsState.AllSkills.Count > 0)
         {
-            tools.Add(ReadSkillTool.CreateTool(_state, _skillLoader));
+            tools.Add(ReadSkillTool.CreateTool(skillsState, skillLoader));
         }
 
         return tools;

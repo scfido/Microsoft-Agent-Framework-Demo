@@ -28,10 +28,9 @@ public sealed class SkillParser
     /// Parses a SKILL.md file and extracts the skill metadata.
     /// </summary>
     /// <param name="skillFilePath">The path to the SKILL.md file.</param>
-    /// <param name="source">The source location of the skill.</param>
     /// <returns>The parsed skill metadata.</returns>
     /// <exception cref="SkillParseException">Thrown when parsing fails.</exception>
-    public SkillMetadata Parse(string skillFilePath, SkillSource source)
+    public SkillMetadata Parse(string skillFilePath)
     {
         // Validate the file exists and is within size limits
         var fileValidation = SkillValidator.ValidateSkillFile(skillFilePath);
@@ -44,7 +43,7 @@ public sealed class SkillParser
         var skillDirectory = Path.GetDirectoryName(skillFilePath)!;
         var directoryName = Path.GetFileName(skillDirectory);
 
-        return ParseContent(content, skillDirectory, directoryName, source);
+        return ParseContent(content, skillDirectory, directoryName);
     }
 
     /// <summary>
@@ -53,10 +52,9 @@ public sealed class SkillParser
     /// <param name="content">The content of the SKILL.md file.</param>
     /// <param name="skillDirectory">The directory containing the skill.</param>
     /// <param name="directoryName">The name of the skill directory.</param>
-    /// <param name="source">The source location of the skill.</param>
     /// <returns>The parsed skill metadata.</returns>
     /// <exception cref="SkillParseException">Thrown when parsing fails.</exception>
-    public SkillMetadata ParseContent(string content, string skillDirectory, string directoryName, SkillSource source)
+    public SkillMetadata ParseContent(string content, string skillDirectory, string directoryName)
     {
         var frontmatter = ExtractFrontmatter(content);
         if (frontmatter is null)
@@ -120,7 +118,6 @@ public sealed class SkillParser
             Name: yamlData.Name,
             Description: yamlData.Description,
             Path: skillDirectory,
-            Source: source,
             License: yamlData.License,
             Compatibility: yamlData.Compatibility,
             Metadata: metadata,

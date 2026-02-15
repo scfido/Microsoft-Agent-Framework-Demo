@@ -9,12 +9,12 @@ namespace AutoBot.Tools;
 /// </summary>
 public sealed class SearchFilesTool
 {
-    private readonly RuntimeOptions _options;
+    private readonly AutoBotOptions _options;
 
     /// <summary>
     /// 初始化 SearchFilesTool 实例。
     /// </summary>
-    public SearchFilesTool(RuntimeOptions options)
+    public SearchFilesTool(AutoBotOptions options)
     {
         _options = options;
     }
@@ -22,7 +22,7 @@ public sealed class SearchFilesTool
     /// <summary>
     /// 创建工具定义。
     /// </summary>
-    public static AITool CreateTool(RuntimeOptions options)
+    public static AITool CreateTool(AutoBotOptions options)
     {
         var tool = new SearchFilesTool(options);
         return AIFunctionFactory.Create(tool.ExecuteAsync, "search_files");

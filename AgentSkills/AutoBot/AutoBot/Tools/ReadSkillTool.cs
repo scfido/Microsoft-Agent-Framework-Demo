@@ -61,7 +61,6 @@ public sealed class ReadSkillTool
                 success = true,
                 skill_name = skillName,
                 description = skill.Description,
-                source = skill.Source.ToString(),
                 content
             });
         }

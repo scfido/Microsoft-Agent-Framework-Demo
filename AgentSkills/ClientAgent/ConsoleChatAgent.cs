@@ -48,8 +48,7 @@ public class ConsoleChatAgent
 
         var agent = chatClient.AsAutoBotAgent(options =>
             {
-                options.AgentName = "my-assistant";
-                options.ProjectRoot = Directory.GetCurrentDirectory();
+                options.SkillsDirectory = Path.Combine(Directory.GetCurrentDirectory(), ".maf", "skills");
 
                 // Enable Skill tools
                 options.EnableReadSkill = true;

@@ -10,12 +10,12 @@ namespace AutoBot.Tools;
 /// </summary>
 public sealed class ReadFileTool
 {
-    private readonly RuntimeOptions _options;
+    private readonly AutoBotOptions _options;
 
     /// <summary>
     /// 初始化 ReadFileTool 实例。
     /// </summary>
-    public ReadFileTool(RuntimeOptions options)
+    public ReadFileTool(AutoBotOptions options)
     {
         _options = options;
     }
@@ -23,7 +23,7 @@ public sealed class ReadFileTool
     /// <summary>
     /// 创建工具定义。
     /// </summary>
-    public static AITool CreateTool(RuntimeOptions options)
+    public static AITool CreateTool(AutoBotOptions options)
     {
         var tool = new ReadFileTool(options);
         return AIFunctionFactory.Create(tool.ExecuteAsync, "read_file");

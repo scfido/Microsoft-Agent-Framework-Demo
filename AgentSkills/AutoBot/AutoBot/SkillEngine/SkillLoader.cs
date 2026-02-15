@@ -25,9 +25,8 @@ public sealed class SkillLoader
     /// 从指定目录加载所有技能。
     /// </summary>
     /// <param name="skillsDirectory">包含技能子目录的目录。</param>
-    /// <param name="source">已加载技能的来源类型。</param>
     /// <returns>成功加载的技能集合。</returns>
-    public IEnumerable<SkillMetadata> LoadSkillsFromDirectory(string skillsDirectory, SkillSource source)
+    public IEnumerable<SkillMetadata> LoadSkillsFromDirectory(string skillsDirectory)
     {
         if (!Directory.Exists(skillsDirectory))
         {
@@ -39,7 +38,7 @@ public sealed class SkillLoader
 
         foreach (var skillDir in skillDirectories)
         {
-            var skill = TryLoadSkill(skillDir, source);
+            var skill = TryLoadSkill(skillDir);
             if (skill is not null)
             {
                 yield return skill;
@@ -48,12 +47,23 @@ public sealed class SkillLoader
     }
 
     /// <summary>
+    /// 按名称从指定目录加载单个技能。
+    /// </summary>
+    /// <param name="skillsDirectory">包含技能子目录的根目录。</param>
+    /// <param name="skillName">要加载的技能名称（对应子目录名）。</param>
+    /// <returns>加载的技能元数据，如果加载失败则返回 null。</returns>
+    public SkillMetadata? LoadSkillByName(string skillsDirectory, string skillName)
+    {
+        var skillDir = Path.Combine(skillsDirectory, skillName);
+        return TryLoadSkill(skillDir);
+    }
+
+    /// <summary>
     /// 尝试从目录加载技能。
     /// </summary>
     /// <param name="skillDirectory">技能目录路径。</param>
-    /// <param name="source">技能的来源类型。</param>
     /// <returns>加载的技能元数据，如果加载失败则返回 null。</returns>
-    private SkillMetadata? TryLoadSkill(string skillDirectory, SkillSource source)
+    private SkillMetadata? TryLoadSkill(string skillDirectory)
     {
         var skillFilePath = Path.Combine(skillDirectory, SkillMetadata.SkillFileName);
 
@@ -78,8 +88,8 @@ public sealed class SkillLoader
 
         try
         {
-            var skill = parser.Parse(skillFilePath, source);
-            logger.LogDebug("Loaded skill: {SkillName} from {Source}", skill.Name, source);
+            var skill = parser.Parse(skillFilePath);
+            logger.LogDebug("Loaded skill: {SkillName}", skill.Name);
             return skill;
         }
         catch (SkillParseException ex)
