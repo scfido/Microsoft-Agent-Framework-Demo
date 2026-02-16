@@ -9,6 +9,7 @@
     <PackageVersion Include="Microsoft.Agents.AI" Version="1.0.0-preview.260212.1" />
     <PackageVersion Include="Microsoft.Agents.AI.Abstractions" Version="1.0.0-preview.260212.1" />
     <PackageVersion Include="Microsoft.Agents.AI.A2A" Version="1.0.0-preview.260212.1" />
+    <PackageVersion Include="Microsoft.Agents.AI.Hosting.AGUI.AspNetCore" Version="1.0.0-preview.260212.1" />
     <PackageVersion Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-preview.260212.1" />
     <PackageVersion Include="Microsoft.Agents.AI.Workflows" Version="1.0.0-preview.260212.1" />
     <!-- Microsoft Extensions AI -->
