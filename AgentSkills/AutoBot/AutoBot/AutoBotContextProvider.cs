@@ -63,52 +63,7 @@ public sealed class AutoBotContextProvider : AIContextProvider
 
         return ValueTask.FromResult(aiContext);
     }
-    
-    /// <summary>
-    /// 在调用后输出工具调用信息到控制台。
-    /// </summary>
-    protected override ValueTask InvokedCoreAsync(
-        InvokedContext context,
-        CancellationToken cancellationToken = default)
-    {
-        if (context.InvokeException is not null)
-        {
-            return ValueTask.CompletedTask;
-        }
-
-        // 遍历响应消息，查找工具调用内容
-        foreach (var message in context.ResponseMessages ?? [])
-        {
-            foreach (var content in message.Contents)
-            {
-                if (content is FunctionCallContent functionCall)
-                {
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.WriteLine($"[Tool Call] {functionCall.Name}");
-                    if (functionCall.Arguments is not null)
-                    {
-                        Console.WriteLine($"  Arguments: {JsonSerializer.Serialize(functionCall.Arguments)}");
-                    }
-                    Console.ResetColor();
-                }
-                else if (content is FunctionResultContent functionResult)
-                {
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    var resultStr = functionResult.Result?.ToString() ?? "(empty)";
-                    // 截断过长的结果
-                    if (resultStr.Length > 500)
-                    {
-                        resultStr = resultStr[..500] + "... (truncated)";
-                    }
-                    Console.WriteLine($"[Tool Result] {functionResult.CallId}: {resultStr}");
-                    Console.ResetColor();
-                }
-            }
-        }
-
-        return ValueTask.CompletedTask;
-    }
-
+   
     /// <summary>
     /// 序列化状态以支持会话恢复。
     /// </summary>

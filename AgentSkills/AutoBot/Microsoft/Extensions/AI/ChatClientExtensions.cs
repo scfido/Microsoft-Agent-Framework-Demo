@@ -1,5 +1,6 @@
 using AutoBot;
 using Microsoft.Agents.AI;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Microsoft.Extensions.AI;
@@ -62,6 +63,73 @@ public static class ChatClientExtensions
 
         configureAgent?.Invoke(agentOptions);
 
-        return chatClient.AsAIAgent(agentOptions);
+        var agent = chatClient.AsAIAgent(agentOptions);
+
+        // 包装 streaming middleware，将工具调用信息注入流式输出
+        return agent
+            .AsBuilder()
+            .Use(
+                runFunc: null,
+                runStreamingFunc: ToolNotificationStreamingMiddleware)
+            .Build();
+    }
+
+    /// <summary>
+    /// 流式中间件：拦截工具调用，注入可读的工具执行提示到输出流中。
+    /// </summary>
+    private static async IAsyncEnumerable<AgentResponseUpdate> ToolNotificationStreamingMiddleware(
+        IEnumerable<ChatMessage> messages,
+        AgentSession? session,
+        AgentRunOptions? options,
+        AIAgent innerAgent,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach (var update in innerAgent.RunStreamingAsync(
+            messages, session, options, cancellationToken))
+        {
+            // 检查是否包含工具调用，注入提示文本
+            foreach (var content in update.Contents)
+            {
+                if (content is FunctionCallContent call)
+                {
+                    var summary = FormatToolCallSummary(call);
+                    if (summary is not null)
+                    {
+                        yield return new AgentResponseUpdate
+                        {
+                            Contents = [new TextContent($"\n{summary}\n")]
+                        };
+                    }
+                }
+            }
+
+            // 原样传递原始 update
+            yield return update;
+        }
+    }
+
+    /// <summary>
+    /// 根据工具名称和参数生成可读的摘要文本。
+    /// </summary>
+    private static string? FormatToolCallSummary(FunctionCallContent call)
+    {
+        var args = call.Arguments;
+
+        return call.Name switch
+        {
+            "list_directory" => $"📂 List directory: {GetArg(args, "relativePath") ?? "."}",
+            "read_file"      => $"📄 Read file: {GetArg(args, "filePath")}",
+            "write_file"     => $"✏️ Write file: {GetArg(args, "filePath")}",
+            "search_files"   => $"🔍 Search: {GetArg(args, "pattern")}",
+            "run_command"    => $"⚡ Run: {GetArg(args, "command")}",
+            "read_skill"     => $"📖 Read skill: {GetArg(args, "skillName")}",
+            _                => $"🔧 {call.Name}"
+        };
+    }
+
+    private static string? GetArg(IDictionary<string, object?>? args, string key)
+    {
+        if (args is null) return null;
+        return args.TryGetValue(key, out var value) ? value?.ToString() : null;
     }
 }
