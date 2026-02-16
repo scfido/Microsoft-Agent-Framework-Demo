@@ -32,7 +32,8 @@ graph TD
 1. **自定义 Hook 封装 Agent 逻辑**：将 `HttpAgent` 的创建、事件订阅、消息状态管理全部封装在 `useChat` Hook 中，使 UI 组件保持纯展示职责。
 2. **使用 `useRef` 持有 Agent 实例**：`HttpAgent` 实例在组件生命周期内保持稳定，避免重复创建。通过 `useRef` 而非 `useState` 持有，防止不必要的重渲染。
 3. **基于 `AgentSubscriber` 的事件驱动更新**：利用 `runAgent` 的 subscriber 参数处理流式事件，在回调中更新 React 状态。
-4. **Markdown 渲染**：assistant 消息内容通过简单的 Markdown 渲染逻辑处理（代码块、加粗、列表等），不引入额外的 Markdown 库以保持轻量。
+4. **Markdown 渲染**：使用 `react-markdown` 库渲染 assistant 消息中的 Markdown 内容，配合 `remark-gfm` 支持 GFM 扩展语法（表格、删除线等）。
+5. **UI 组件库**：使用 shadcn/ui 组件库构建界面，基于 Radix UI 原语 + Tailwind CSS，提供一致的设计语言和可访问性支持。
 
 ## 组件与接口
 
@@ -43,16 +44,34 @@ src/
 ├── hooks/
 │   └── useChat.ts              # 核心 Hook：Agent 通信 + 状态管理
 ├── components/
+│   ├── ui/                     # shadcn/ui 基础组件
+│   │   ├── button.tsx
+│   │   ├── textarea.tsx
+│   │   ├── scroll-area.tsx
+│   │   ├── card.tsx
+│   │   └── collapsible.tsx
 │   ├── ChatMessageList.tsx     # 消息列表容器（自动滚动）
 │   ├── MessageBubble.tsx       # 单条消息气泡
 │   ├── ChatInput.tsx           # 输入框 + 发送/中止按钮
 │   ├── ToolCallDisplay.tsx     # 工具调用展示组件
-│   └── MarkdownRenderer.tsx    # 简易 Markdown 渲染组件
+│   └── MarkdownRenderer.tsx    # react-markdown 封装组件
 ├── lib/
-│   └── markdown.ts             # Markdown 解析工具函数
+│   └── utils.ts                # shadcn/ui cn() 工具函数
 └── routes/
     └── index.tsx               # 主页路由（ChatPage）
 ```
+
+### 依赖说明
+
+| 包名 | 用途 |
+|------|------|
+| `react-markdown` | Markdown 渲染 |
+| `remark-gfm` | GFM 扩展语法支持 |
+| `tailwind-merge` | Tailwind 类名合并（shadcn/ui 依赖） |
+| `clsx` | 条件类名拼接（shadcn/ui 依赖） |
+| `class-variance-authority` | 组件变体样式（shadcn/ui 依赖） |
+| `@radix-ui/react-collapsible` | 可折叠组件原语（工具调用展示） |
+| `@radix-ui/react-scroll-area` | 滚动区域组件原语 |
 
 ### useChat Hook
 
@@ -117,8 +136,8 @@ interface ChatInputProps {
 }
 ```
 
-- 包含一个 `<textarea>` 和发送/中止按钮
-- 运行中时显示中止按钮，空闲时显示发送按钮
+- 使用 shadcn/ui 的 `Textarea` 和 `Button` 组件
+- 运行中时显示中止按钮（使用 lucide-react 的 `Square` 图标），空闲时显示发送按钮（`SendHorizontal` 图标）
 - Enter 发送（Shift+Enter 换行）
 - 空白内容时禁用发送
 
@@ -130,6 +149,7 @@ interface ChatMessageListProps {
 }
 ```
 
+- 使用 shadcn/ui 的 `ScrollArea` 组件包裹消息列表
 - 渲染消息列表，每条消息使用 `MessageBubble`
 - 使用 `useRef` + `useEffect` 实现自动滚动到底部
 
@@ -142,9 +162,10 @@ interface MessageBubbleProps {
 ```
 
 - 根据 `role` 决定对齐方向和样式
-- user 消息靠右，蓝色背景
-- assistant 消息靠左，灰色背景
+- user 消息靠右，使用主题色背景
+- assistant 消息靠左，使用 shadcn/ui `Card` 组件包裹
 - assistant 消息内容通过 `MarkdownRenderer` 渲染
+- 使用 lucide-react 图标区分角色（`User` / `Bot`）
 
 ### ToolCallDisplay 组件
 
@@ -154,8 +175,9 @@ interface ToolCallDisplayProps {
 }
 ```
 
+- 使用 shadcn/ui 的 `Collapsible` 组件实现可折叠/展开
 - 展示工具名称和参数
-- 可折叠/展开参数详情
+- 默认折叠，点击展开参数详情
 
 ### MarkdownRenderer 组件
 
@@ -165,8 +187,9 @@ interface MarkdownRendererProps {
 }
 ```
 
-- 将 Markdown 文本解析为 React 元素
-- 支持：代码块（带语法高亮类名）、行内代码、加粗、斜体、列表、段落
+- 封装 `react-markdown` 组件，配合 `remark-gfm` 插件
+- 自定义代码块渲染：使用 `<pre><code>` 并添加语言类名和 Tailwind 样式
+- 自定义链接渲染：添加 `target="_blank"` 和 `rel="noopener noreferrer"`
 
 ## 数据模型
 
@@ -204,22 +227,7 @@ stateDiagram-v2
     UserMessage --> [*]
 ```
 
-### Markdown 解析
 
-`markdown.ts` 提供一个 `parseMarkdown(text: string): MarkdownNode[]` 函数，将 Markdown 文本解析为结构化节点：
-
-```typescript
-type MarkdownNode =
-  | { type: 'paragraph'; content: InlineNode[] }
-  | { type: 'code-block'; language: string; code: string }
-  | { type: 'list'; ordered: boolean; items: InlineNode[][] }
-
-type InlineNode =
-  | { type: 'text'; text: string }
-  | { type: 'bold'; text: string }
-  | { type: 'italic'; text: string }
-  | { type: 'code'; text: string }
-```
 
 
 ## 正确性属性
@@ -268,9 +276,9 @@ type InlineNode =
 
 **Validates: Requirements 4.2**
 
-### Property 8：Markdown 解析结构正确性
+### Property 8：Markdown 渲染输出包含源内容
 
-*For any* 包含代码块、加粗、斜体、列表的 Markdown 文本，parseMarkdown 函数应产生正确的结构化节点，且每个代码块节点的 code 字段应包含原始代码内容。
+*For any* 包含纯文本段落的 Markdown 字符串，MarkdownRenderer 组件的渲染输出应包含该文本内容（即 react-markdown 正确传递了内容）。
 
 **Validates: Requirements 3.3**
 
@@ -298,7 +306,7 @@ type InlineNode =
 ### 测试框架
 
 - **测试运行器**：Vitest
-- **属性测试库**：`fast-check`（需安装 `@fast-check/vitest` 或直接使用 `fast-check`）
+- **属性测试库**：`fast-check`
 - **React 测试**：`@testing-library/react` + `@testing-library/dom`
 
 ### 属性测试配置
