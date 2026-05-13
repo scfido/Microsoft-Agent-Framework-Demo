@@ -5,5 +5,14 @@
     <Project Path="A2A/TravelPlanner/TravelPlannerClient/TravelPlannerClient.csproj" />
     <Project Path="A2A/TravelPlanner/WeatherAgentServer/WeatherAgentServer.csproj" />
   </Folder>
-  <Project Path="Harness\Harness_Step01_Research\Harness_Step01_Research.csproj" />
+  <Folder Name="/Harmess/">
+    <Project Path="Harness/ConsoleReactiveComponents/ConsoleReactiveComponents.csproj" />
+    <Project Path="Harness/ConsoleReactiveFramework/ConsoleReactiveFramework.csproj" />
+    <Project Path="Harness/Harness_Shared_Console/Harness_Shared_Console.csproj" />
+    <Project Path="Harness\Harness_Step01_Research\Harness_Step01_Research.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
 </Solution>
