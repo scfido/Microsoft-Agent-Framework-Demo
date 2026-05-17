@@ -13,19 +13,21 @@
 #pragma warning disable OPENAI001 // Suppress experimental API warnings for Responses API usage.
 #pragma warning disable MAAI001  // Suppress experimental API warnings for Agents AI experiments.
 
-using System.ClientModel.Primitives;
-using Azure.Identity;
+using Cowork;
 using Harness.Shared.Console;
 using Microsoft.Agents.AI;
-using Microsoft.Extensions.AI;
-using OpenAI;
-using OpenAI.Responses;
-using SampleApp;
+using Microsoft.Extensions.Configuration;
 
-var endpoint = Environment.GetEnvironmentVariable("AZURE_FOUNDRY_OPENAI_ENDPOINT") ?? throw new InvalidOperationException("AZURE_FOUNDRY_OPENAI_ENDPOINT is not set.");
-var deploymentName = Environment.GetEnvironmentVariable("AZURE_AI_MODEL_DEPLOYMENT_NAME") ?? "gpt-5.4";
+const int MaxContextWindowTokens = 1_050_000;
+const int MaxOutputTokens = 128_000;
 
-AIAgent agent = await CoworkAgent.CreateAsync();
+// Load Configuration
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile($"appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.Development.json", optional: true, reloadOnChange: true)
+    .Build();
+
+AIAgent agent = await CoworkAgent.CreateAsync(configuration);
 
 // Run the interactive console session using the shared HarnessConsole helper.
 await HarnessConsole.RunAgentAsync(

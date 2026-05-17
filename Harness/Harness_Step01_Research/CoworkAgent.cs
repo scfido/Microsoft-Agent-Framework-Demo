@@ -2,8 +2,9 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using OpenAI;
-using OpenAI.Chat;
+using SampleApp;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 
 namespace Cowork;
 
@@ -12,23 +13,20 @@ public class CoworkAgent
 
     public static Task<AIAgent> CreateAsync(IConfiguration configuration)
     {
-        var endpoint = configuration["OpenAI:Endpoint"]
-            ?? throw new InvalidOperationException("配置项 'OpenAI:Endpoint' 未找到");
+        var endpoint = configuration["OpenAI:EndPoint"]
+            ?? throw new InvalidOperationException("配置项 'OpenAI:EndPoint' 未找到");
         var apiKey = configuration["OpenAI:ApiKey"]
             ?? throw new InvalidOperationException("配置项 'OpenAI:ApiKey' 未找到");
-
-        // var agent = new OpenAIClient(
-        //         new ApiKeyCredential(apiKey),
-        //         new OpenAIClientOptions()
-        //         {
-        //             Endpoint = new Uri(endpoint)
-        //         }
-        //     )
-        //     .GetChatClient("kimi-for-coding")
-        //     .AsAIAgent(instructions: "你是一个风趣幽默的聊天助手，擅长讲笑话和轻松的对话。", name: "Joker");
+        var modelId = configuration["OpenAI:ModelId"]
+            ?? throw new InvalidOperationException("配置项 'OpenAI:ModelId' 未找到");
 
         const int MaxContextWindowTokens = 1_050_000;
         const int MaxOutputTokens = 128_000;
+        var tools = new List<AITool>
+        {
+            new WebBrowsingTool(                                    // Add a local web browsing tool that converts html to markdown.
+                new WebBrowsingToolOptions { AllowPublicNetworks = true }),
+        };
 
         // Create a HarnessAgent with the Harness providers (TodoProvider and AgentModeProvider)
         // and research-focused instructions including the mandatory planning workflow.
@@ -123,8 +121,8 @@ public class CoworkAgent
                     Endpoint = new Uri(endpoint),
                     RetryPolicy = new ClientRetryPolicy(3)          // Enable retries to improve resiliency.
                 })
-            .GetResponsesClient()
-            .AsIChatClientWithStoredOutputDisabled(deploymentName)   // We want to manage chat history locally (not stored in the responses service), so that we can manage compaction ourselves.
+            .GetChatClient(modelId)
+            .AsIChatClient()
             .AsHarnessAgent(MaxContextWindowTokens, MaxOutputTokens, new HarnessAgentOptions
             {
                 Name = "ResearchAgent",
@@ -140,12 +138,7 @@ public class CoworkAgent
                 ChatOptions = new ChatOptions
                 {
                     Instructions = instructions,
-                    Tools =
-                    [
-                        ResponseTool.CreateWebSearchTool().AsAITool(),          // Add the foundry hosted web search tool that runs in the service.
-                new WebBrowsingTool(                                    // Add a local web browsing tool that converts html to markdown.
-                    new WebBrowsingToolOptions { AllowPublicNetworks = true }),
-                    ],
+                    Tools = tools,
                     MaxOutputTokens = MaxOutputTokens,                          // Set a high token limit for long research tasks with many tool calls and long outputs.
                     Reasoning = new() { Effort = ReasoningEffort.Medium },
                 },

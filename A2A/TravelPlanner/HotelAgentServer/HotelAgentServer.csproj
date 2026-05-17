@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="A2A.AspNetCore" />
+	  <PackageReference Include="Microsoft.Agents.AI" />
   </ItemGroup>
 
 </Project>

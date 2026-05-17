@@ -10,11 +10,22 @@
 
 	<ItemGroup>
 		<PackageReference Include="Azure.Identity" />
+		<PackageReference Include="Microsoft.Agents.AI.OpenAI" />
 		<PackageReference Include="Microsoft.Agents.AI.Harness" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Harness_Shared_Console\Harness_Shared_Console.csproj" />
 	</ItemGroup>
-
+ 
+  <ItemGroup>
+    <None Update="appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

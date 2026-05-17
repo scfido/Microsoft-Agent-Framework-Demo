@@ -75,7 +75,7 @@ public class HotelAgent
         {
             Name = "hotel-a2a-agent",
             Description = "hotel information agent",
-            Url = agentUrl,
+            DocumentationUrl = agentUrl,
             Version = "1.0.0",
             DefaultInputModes = ["text"],
             DefaultOutputModes = ["text"],
