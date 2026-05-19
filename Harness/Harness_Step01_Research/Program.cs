@@ -10,13 +10,14 @@
 //   /todos  — Display the current todo list without invoking the agent.
 //   exit    — End the session.
 
-#pragma warning disable OPENAI001 // Suppress experimental API warnings for Responses API usage.
 #pragma warning disable MAAI001  // Suppress experimental API warnings for Agents AI experiments.
 
 using Cowork;
 using Harness.Shared.Console;
+using Harness.Shared.Console.ToolFormatters;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.Configuration;
+using SampleApp;
 
 const int MaxContextWindowTokens = 1_050_000;
 const int MaxOutputTokens = 128_000;
@@ -29,16 +30,20 @@ var configuration = new ConfigurationBuilder()
 
 AIAgent agent = await CoworkAgent.CreateAsync(configuration);
 
+
 // Run the interactive console session using the shared HarnessConsole helper.
 await HarnessConsole.RunAgentAsync(
     agent,
-    title: "Research Assistant",
     userPrompt: "Enter a research topic to get started.",
     new HarnessConsoleOptions
     {
-        MaxContextWindowTokens = MaxContextWindowTokens,
-        MaxOutputTokens = MaxOutputTokens,
-        EnablePlanningUx = true,
-        PlanningModeName = "plan",
-        ExecutionModeName = "execute"
+        Observers = [
+            .. HarnessConsoleOptions.BuildObserversWithPlanning(
+                agent,
+                planModeName: "plan",
+                executionModeName: "execute",
+                maxContextWindowTokens: MaxContextWindowTokens,
+                maxOutputTokens: MaxOutputTokens,
+                toolFormatters: [new DownloadUriToolFormatter(), .. ToolCallFormatter.BuildDefaultToolFormatters()])],
+        CommandHandlers = HarnessConsoleOptions.BuildDefaultCommandHandlers(agent),
     });
